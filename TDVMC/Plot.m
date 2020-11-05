@@ -48,8 +48,11 @@ PlotEPot[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[2]],
 PlotPR[data_] := PlotTemporalData[data["pR"][[;;-2]]//DS50, data["timesSystem"], "parameters real"];
 PlotPI[data_] := PlotTemporalData[data["pI"][[;;-2]]//DS50, data["timesSystem"], "parameters imag"];
 
+PlotLastGr[data_/;MatchQ[data, KeyValuePattern["gr"->{{}}]]] := Nothing;
 PlotLastGr[data_]:= PlotSingleObservable[data["grGrid"], data["gr"]//Transpose//Last, "g_2(r_ij, t="<>ToString[data["timesAdditional"]//Last]<>")"];
+PlotLastSk[data_/;MatchQ[data, KeyValuePattern["sk"->{{}}]]] := Nothing;
 PlotLastSk[data_]:= PlotSingleObservable[data["skGrid"], data["sk"]//Transpose//Last, "S(k, t="<>ToString[data["timesAdditional"]//Last]<>")"];
+PlotLastRho[data_/;MatchQ[data, KeyValuePattern["rho"->{{}}]]] := Nothing;
 PlotLastRho[data_]:= PlotSingleObservable[data["rhoGrid"], data["rho"]//Transpose//Last, "\[Rho](r, t="<>ToString[data["timesAdditional"]//Last]<>")"];
 
 PlotAll[data_]:={
@@ -65,6 +68,7 @@ End[];
 Protect @@ Names["Plot`*"];
 
 EndPackage[];
+
 
 
 
