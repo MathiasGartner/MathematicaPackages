@@ -8,6 +8,8 @@ ClearAll @@ Names["Data`*"];
 
 ReadTVMCFiles::usage = "reads simulation data from directory <path>";
 
+TakeData::usage = "TakeData[data, interval]";
+
 Begin["Private`"]
 
 Needs["Utils`", FileNameJoin[{NotebookDirectory[], "..", "Utils", "Utils.m"}]];
@@ -57,12 +59,21 @@ ReadTVMCFiles[directory_]:=Module[{timesSystem, eR, eI, pR, pI, other, timesAddi
 	gr = ReadData[GetFilePath[directory, "gr"]];
 	sk = ReadData[GetFilePath[directory, "sk"]];
 	rho = ReadData[GetFilePath[directory, "rho"]];
-	data = <|"timesSystem"->timesSystem, 
+	data = <|"directory"-> directory, "timesSystem"->timesSystem, 
 		"eR"->eR, "eI"->eI, "pR"->pR, "pI"->pI, "other"->other,
 		"timesAdditional"->timesAdditional,
 		"grGrid"->grGrid, "skGrid"->skGrid,"rhoGrid"->rhoGrid,
 		"gr"->gr, "sk"->sk,"rho"->rho|>;
 	data
+];
+
+TakeData[data_, interval_] := Module[{new, keys, keys2D},
+keys = {"timesSystem", "eR", "eI", "timesAdditional"};
+keys2D = {"pR", "pI", "other", "gr", "sk", "rho"};
+new = data;
+(If[new[#] !={}, new[#]=Check[new[#][[interval]], new[#]]])&/@keys;
+(If[new[#] != {{}}, new[#]=Check[(new[#]//Transpose)[[interval]]//Transpose, new[#]]])&/@keys2D;
+new
 ];
 
 End[];

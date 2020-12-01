@@ -13,6 +13,7 @@ PlotEPot::usage = "plots potential part of energy";
 
 PlotPR::usage = "plots up to 50 real parameters";
 PlotPI::usage = "plots up to 50 imaginary parameters";
+PlotPRForTimesteps::usage = "plots real parameters as line for several timesteps in order to give an approximate view of \!\(\*SubscriptBox[\(u\), \(2\)]\)(\!\(\*SubscriptBox[\(r\), \(ij\)]\))";
 
 PlotLastGr::usage = "plots g_2(r_ij) for the last available timestamp";
 PlotLastSk::usage = "plots S(k) for the last available timestamp";
@@ -22,6 +23,8 @@ PlotLastRho::usage = "plots \[Rho](r) for the last available timestamp";
 PlotGrData::usage = "plots g_2(r_ij, t) as matrix plot and line plot";
 PlotSkData::usage = "plots S(k, t) as matrix plot and line plot";
 PlotRhoData::usage = "plots \[Rho](r, t) as matrix plot and line plot";
+
+PlotGrByPosition::usage = "plots \!\(\*SubscriptBox[\(g\), \(2\)]\)(\!\(\*SubscriptBox[\(r\), \(ij\)]\), t) for fixed values of \!\(\*SubscriptBox[\(r\), \(ij\)]\)";
 
 PlotAll::usage = "generates all plots";
 
@@ -36,22 +39,29 @@ $PlotTheme={"Detailed"};
 
 SetOptions[$FrontEnd,PrintingStyleEnvironment->"Working"];
 
+imageSize = Medium;
+
 PlotSingleObservable[x_, y_, label_String]:=Module[{count},
 count = Min[Length[x], Length[y]];
-ListLinePlot[{x[[;;count]], y[[;;count]]}//Transpose, PlotRange->All, PlotLegends->None, PlotLabel->label]
+ListLinePlot[{x[[;;count]], y[[;;count]]}//Transpose, PlotRange->All, PlotLegends->None, PlotLabel->label, ImageSize->imageSize]
 ];
 PlotTemporalData[data_, times_, label_String]:=Module[{count},
 count = Min[Length[data//Transpose], Length[times]];
-ListLinePlot[TemporalData[data[[All, ;;count]], {times[[;;count]]}], PlotRange->All, PlotLegends->None, PlotLabel->label,PlotStyle->"Rainbow"]
+ListLinePlot[TemporalData[data[[All, ;;count]], {times[[;;count]]}], PlotRange->All, PlotLegends->None, PlotLabel->label,PlotStyle->"Rainbow", ImageSize->imageSize]
 ];
 
-PlotER[data_] := PlotSingleObservable[data["timesSystem"], data["eR"], "E^R"];
-PlotEI[data_] := PlotSingleObservable[data["timesSystem"], data["eI"], "E^I"];
-PlotEKin[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[1]], "E_kin"];
-PlotEPot[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[2]], "E_pot"];
+PlotLists[data_, label_String]:=Module[{},
+ListLinePlot[data, PlotRange->All, PlotLegends->None, PlotLabel->label,PlotStyle->"Rainbow", ImageSize->imageSize]
+];
 
-PlotPR[data_] := PlotTemporalData[data["pR"][[;;-2]]//DS50, data["timesSystem"], "parameters real"];
-PlotPI[data_] := PlotTemporalData[data["pI"][[;;-2]]//DS50, data["timesSystem"], "parameters imag"];
+PlotER[data_] := PlotSingleObservable[data["timesSystem"], data["eR"], "Re[E(t)]"];
+PlotEI[data_] := PlotSingleObservable[data["timesSystem"], data["eI"], "Im[E(t)]"];
+PlotEKin[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[1]], "Re[E_kin(t)]"];
+PlotEPot[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[2]], "E_pot(t)"];
+
+PlotPR[data_] := PlotTemporalData[data["pR"][[;;-2]]//DS50, data["timesSystem"], "parameters real (t)"];
+PlotPI[data_] := PlotTemporalData[data["pI"][[;;-2]]//DS50, data["timesSystem"], "parameters imag (t)"];
+PlotPRForTimesteps[data_] := PlotLists[data["pR"][[;;-2]]//Transpose//DS10, "parmeters real (k)"]
 
 PlotLastGr[data_/;MatchQ[data, KeyValuePattern["gr"->{{}}]]] := Nothing;
 PlotLastGr[data_]:= PlotSingleObservable[data["grGrid"], data["gr"]//Transpose//Last, "g_2(r_ij, t="<>ToString[data["timesAdditional"]//Last]<>")"];
@@ -69,10 +79,10 @@ rangeT = {data["timesAdditional"]//First, data["timesAdditional"]//Last};
 range = {rangeX, rangeT};
 tmp=(data["gr"]//Transpose//Reverse);
 diffs= ((#-tmp[[-1]])&)/@tmp;
-plotM=tmp//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->Medium, PlotLabel->"g_2(r_ij, t)",FrameLabel->{{"r_ij", ""}, {"t", ""}}, DataRange->range]&;
-plotMD=diffs//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->Medium,PlotLabel->"g_2(r_ij, t) - g_2(r_ij, 0)", FrameLabel->{{"r_ij", ""}, {"t", ""}}, DataRange->range]&;
-plotL=tmp//Reverse//DS50//ListLinePlot[#, PlotRange->All, PlotStyle->"Rainbow", ImageSize->Medium, PlotLabel->"g_2(r_ij, t)", DataRange->rangeX]&;
-plotLLog=tmp//Reverse//DS50//ListLogLinearPlot[#, PlotRange->All, PlotStyle->"Rainbow", Joined->True, ImageSize->Medium, PlotLabel->"g_2(r_ij, t)", DataRange->rangeX]&;
+plotM=tmp//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"g_2(r_ij, t)",FrameLabel->{{"r_ij", ""}, {"t", ""}}, DataRange->range]&;
+plotMD=diffs//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize,PlotLabel->"g_2(r_ij, t) - g_2(r_ij, 0)", FrameLabel->{{"r_ij", ""}, {"t", ""}}, DataRange->range]&;
+plotL=tmp//Reverse//DS50//ListLinePlot[#, PlotRange->All, PlotStyle->"Rainbow", ImageSize->imageSize, PlotLabel->"g_2(r_ij, t)", DataRange->rangeX]&;
+plotLLog=tmp//Reverse//DS50//ListLogLinearPlot[#, PlotRange->All, PlotStyle->"Rainbow", Joined->True, ImageSize->imageSize, PlotLabel->"g_2(r_ij, t)", DataRange->rangeX]&;
 {plotM, plotMD, plotL, plotLLog}
 ];
 
@@ -83,44 +93,59 @@ rangeT = {data["timesAdditional"]//First, data["timesAdditional"]//Last};
 range = {rangeX, rangeT};
 tmp=(data["sk"]//Transpose//Reverse);
 diffs= ((#-tmp[[-1]])&)/@tmp;
-plotM=tmp//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->Medium, PlotLabel->"S(k, t)",FrameLabel->{{"k", ""}, {"t", ""}}, DataRange->range]&;
-plotMD=diffs//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->Medium,PlotLabel->"S(k, t) - S(k, 0)", FrameLabel->{{"k", ""}, {"t", ""}}, DataRange->range]&;
-plotL=tmp//Reverse//DS50//ListLinePlot[#, PlotRange->All, PlotStyle->"Rainbow", ImageSize->Medium, PlotLabel->"S(k, t)", DataRange->rangeX]&;
-plotLLog=tmp//Reverse//DS50//ListLogLinearPlot[#, PlotRange->All, PlotStyle->"Rainbow", Joined->True, ImageSize->Medium, PlotLabel->"S(k, t)", DataRange->rangeX]&;
+plotM=tmp//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"S(k, t)",FrameLabel->{{"k", ""}, {"t", ""}}, DataRange->range]&;
+plotMD=diffs//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize,PlotLabel->"S(k, t) - S(k, 0)", FrameLabel->{{"k", ""}, {"t", ""}}, DataRange->range]&;
+plotL=tmp//Reverse//DS50//ListLinePlot[#, PlotRange->All, PlotStyle->"Rainbow", ImageSize->imageSize, PlotLabel->"S(k, t)", DataRange->rangeX]&;
+plotLLog=tmp//Reverse//DS50//ListLogLinearPlot[#, PlotRange->All, PlotStyle->"Rainbow", Joined->True, ImageSize->imageSize, PlotLabel->"S(k, t)", DataRange->rangeX]&;
 {plotM, plotMD, plotL, plotLLog}
 ];
 
 PlotRhoData[data_/;MatchQ[data, KeyValuePattern["rho"->{{}}]]] := Nothing;
-PlotRhoData[data_]:=Module[{tmp, diffs, plotM, plotMD, plotL, plotLLog, rangeX, rangeT, range},
+PlotRhoData[data_]:=Module[{tmp, diffs, plotM, plotMD, plotL, rangeX, rangeT, range},
 rangeX = {data["rhoGrid"]//First, data["rhoGrid"]//Last};
 rangeT = {data["timesAdditional"]//First, data["timesAdditional"]//Last};
 range = {rangeX, rangeT};
 tmp=(data["rho"]//Transpose//Reverse);
 diffs= ((#-tmp[[-1]])&)/@tmp;
-plotM=tmp//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->Medium, PlotLabel->"\[Rho](r, t)",FrameLabel->{{"r", ""}, {"t", ""}}, DataRange->range]&;
-plotMD=diffs//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->Medium,PlotLabel->"\[Rho](r, t) - \[Rho](r, 0)", FrameLabel->{{"r", ""}, {"t", ""}}, DataRange->range]&;
-plotL=tmp//Reverse//DS50//ListLinePlot[#, PlotRange->All, PlotStyle->"Rainbow", ImageSize->Medium, PlotLabel->"\[Rho](r, t)", DataRange->rangeX]&;
-plotLLog=tmp//Reverse//DS50//ListLogLinearPlot[#, PlotRange->All, PlotStyle->"Rainbow", Joined->True, ImageSize->Medium, PlotLabel->"\[Rho](r, t)", DataRange->rangeX]&;
-{plotM, plotMD, plotL, plotLLog}
+plotM=tmp//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"\[Rho](r, t)",FrameLabel->{{"r", ""}, {"t", ""}}, DataRange->range]&;
+plotMD=diffs//MatrixPlot[#,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize,PlotLabel->"\[Rho](r, t) - \[Rho](r, 0)", FrameLabel->{{"r", ""}, {"t", ""}}, DataRange->range]&;
+plotL=tmp//Reverse//DS50//ListLinePlot[#, PlotRange->All, PlotStyle->"Rainbow", ImageSize->imageSize, PlotLabel->"\[Rho](r, t)", DataRange->rangeX]&;
+{plotM, plotMD, plotL}
+];
+
+PlotGrByPosition[data_/;MatchQ[data, KeyValuePattern["gr"->{{}}]]] := Nothing;
+PlotGrByPosition[data_]:=Module[{plots, rangeX, rangeT, range},
+rangeX = {data["grGrid"]//First, data["grGrid"]//Last};
+rangeT = {data["timesAdditional"]//First, data["timesAdditional"]//Last};
+range = {rangeX, rangeT};
+plots = Map[ListLinePlot[#[[1]], PlotRange->All, FrameLabel->{{"", ""}, {"", "\!\(\*SubscriptBox[\(g\), \(2\)]\)(\!\(\*SubscriptBox[\(r\), \(ij\)]\), t)"}}, PlotLegends->Placed["\!\(\*SubscriptBox[\(r\), \(ij\)]\)="<>ToString[#[[2]]],  {0.5, 0.2}], DataRange->rangeT]&, {data["gr"]//DS20, data["grGrid"]//DS20}//Transpose];
+plots
 ];
 
 PlotAll[data_]:={
-{PlotER[data], PlotEI[data],PlotEKin[data], PlotEPot[data]},
-{PlotPR[data], PlotPI[data]},
+{PlotER[data], PlotEI[data], PlotEKin[data], PlotEPot[data]},
+{PlotPR[data], PlotPI[data], PlotPRForTimesteps[data]},
 {PlotLastGr[data], PlotLastSk[data], PlotLastEk[data], PlotLastRho[data]},
 PlotGrData[data],
 PlotSkData[data],
-PlotRhoData[data]
+PlotRhoData[data],
+PlotGrByPosition[data]
 };
 
-ExportAllPlots[data_, directory_, filename_String:"data"]:=Export[FileNameJoin[{directory, filename<>".pdf"}], PlotAll[data]//Grid, ImageSize->1000];
+PlotAllForExport[data_]:= Module[{plots},
+plots = PlotAll[data];
+Grid[{{plots[[1;;-2]]//Grid},{Partition[plots[[-1]], 4]//Grid}}]
+];
+
+
+ExportAllPlots[data_, filename_String:"data"]:=ExportAllPlots[data, data["directory"], filename];
+ExportAllPlots[data_, directory_, filename_String:"data"]:=Export[FileNameJoin[{directory, filename<>".pdf"}], PlotAllForExport[data], ImageSize->1000];
 
 End[];
 
 Protect @@ Names["Plot`*"];
 
 EndPackage[];
-
 
 
 
