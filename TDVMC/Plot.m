@@ -24,7 +24,10 @@ PlotGrData::usage = "plots g_2(r_ij, t) as matrix plot and line plot";
 PlotSkData::usage = "plots S(k, t) as matrix plot and line plot";
 PlotRhoData::usage = "plots \[Rho](r, t) as matrix plot and line plot";
 
-PlotGrByPosition::usage = "plots \!\(\*SubscriptBox[\(g\), \(2\)]\)(\!\(\*SubscriptBox[\(r\), \(ij\)]\), t) for fixed values of \!\(\*SubscriptBox[\(r\), \(ij\)]\)";
+PlotGrByPosition::usage = "plots g_2(r_ij, t) for fixed values of r_ij";
+
+AnimateGr::usage = "animates g_2(r_ij, t)";
+AnimateRho::usage = "animates \[Rho](r, t)";
 
 PlotAll::usage = "generates all plots";
 
@@ -122,6 +125,22 @@ plots = Map[ListLinePlot[#[[1]], PlotRange->All, FrameLabel->{{"", ""}, {"", "\!
 plots
 ];
 
+AnimateGr[data_] := DynamicModule[{animation, plots, min, max},
+min = data["gr"]//Min;
+max = data["gr"]//Max;
+plots = PlotSingleObservable[data["grGrid"], #, "g_2(r_ij, t="<>ToString[data["timesAdditional"]//Last]<>")"]&/@(data["gr"]//Transpose);
+animation = Manipulate[Show[plots[[i]], PlotRange->{All, {min - 0.1*Abs[min], 1.1*max}}], {i, 1, Length[plots], 1}];
+animation
+];
+
+AnimateRho[data_] := DynamicModule[{animation, plots, min, max},
+min = data["rho"]//Min;
+max = data["rho"]//Max;
+plots = PlotSingleObservable[data["rhoGrid"], #, "\[Rho](r, t="<>ToString[data["timesAdditional"]//Last]<>")"]&/@(data["rho"]//Transpose);
+animation = Manipulate[Show[plots[[i]], PlotRange->{All, {min - 0.1*Abs[min], 1.1*max}}], {i, 1, Length[plots], 1}];
+animation
+];
+
 PlotAll[data_]:={
 {PlotER[data], PlotEI[data], PlotEKin[data], PlotEPot[data]},
 {PlotPR[data], PlotPI[data], PlotPRForTimesteps[data]},
@@ -136,8 +155,6 @@ PlotAllForExport[data_]:= Module[{plots},
 plots = PlotAll[data];
 Grid[{{plots[[1;;-2]]//Grid},{Partition[plots[[-1]], 4]//Grid}}]
 ];
-
-
 ExportAllPlots[data_, filename_String:"data"]:=ExportAllPlots[data, data["directory"], filename];
 ExportAllPlots[data_, directory_, filename_String:"data"]:=Export[FileNameJoin[{directory, filename<>".pdf"}], PlotAllForExport[data], ImageSize->1000];
 
@@ -146,6 +163,9 @@ End[];
 Protect @@ Names["Plot`*"];
 
 EndPackage[];
+
+
+
 
 
 
