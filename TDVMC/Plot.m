@@ -13,12 +13,13 @@ PlotEPot::usage = "plots potential part of energy";
 
 PlotPR::usage = "plots up to 50 real parameters";
 PlotPI::usage = "plots up to 50 imaginary parameters";
-PlotPRForTimesteps::usage = "plots real parameters as line for several timesteps in order to give an approximate view of \!\(\*SubscriptBox[\(u\), \(2\)]\)(\!\(\*SubscriptBox[\(r\), \(ij\)]\))";
+PlotPRForTimesteps::usage = "plots real parameters as line for several timesteps in order to give an approximate view of u_2(r_ij)";
 
 PlotLastGr::usage = "plots g_2(r_ij) for the last available timestamp";
 PlotLastSk::usage = "plots S(k) for the last available timestamp";
 PlotLastEk::usage = "plots E(k) for the last available timestamp";
 PlotLastRho::usage = "plots \[Rho](r) for the last available timestamp";
+PlotLastRho2::usage = "plots \!\(\*SubscriptBox[\(\[Rho]\), \(2\)]\)(\!\(\*SubscriptBox[\(r\), \(i\)]\), \!\(\*SubscriptBox[\(r\), \(j\)]\)) for the last available timestamp";
 
 PlotGrData::usage = "plots g_2(r_ij, t) as matrix plot and line plot";
 PlotSkData::usage = "plots S(k, t) as matrix plot and line plot";
@@ -76,6 +77,13 @@ PlotLastEk[data_/;MatchQ[data, KeyValuePattern["sk"->{{}}]]] := Nothing;
 PlotLastEk[data_]:= PlotSingleObservable[data["skGrid"], ({data["skGrid"], data["sk"]//Transpose//Last}//Transpose)/.{k_, s_}-> k^2/s, "E(k, t="<>ToString[data["timesAdditional"]//Last]<>")"];
 PlotLastRho[data_/;MatchQ[data, KeyValuePattern["rho"->{{}}]]] := Nothing;
 PlotLastRho[data_]:= PlotSingleObservable[data["rhoGrid"], data["rho"]//Transpose//Last, "\[Rho](r, t="<>ToString[data["timesAdditional"]//Last]<>")"];
+PlotLastRho2[data_/;MatchQ[data, KeyValuePattern["rho2"->{{}}]]] := Nothing;
+PlotLastRho2[data_]:= Module[{rangeR1, rangeR2, range},
+rangeR1 = {data["rho2Grid"][[1]]//First, data["rho2Grid"][[1]]//Last};
+rangeR2 = {data["rho2Grid"][[2]]//First, data["rho2Grid"][[2]]//Last};
+range = {rangeR1, rangeR2};
+MatrixPlot[data["rho2"]//Last,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"\[Rho]_2(r_ij, t)",FrameLabel->{{"r_i", ""}, {"r_j", ""}}, DataRange->range];
+];
 
 PlotGrData[data_/;MatchQ[data, KeyValuePattern["gr"->{{}}]]] := Nothing;
 PlotGrData[data_]:=Module[{tmp, diffs, plotM, plotMD, plotL, plotLLog, rangeX, rangeT, range},
@@ -152,7 +160,7 @@ CompareER[data_] := Show[MapIndexed[PlotSingleObservable[#1["timesSystem"], #1["
 PlotAll[data_]:={
 {PlotER[data], PlotEI[data], PlotEKin[data], PlotEPot[data]},
 {PlotPR[data], PlotPI[data], PlotPRForTimesteps[data]},
-{PlotLastGr[data], PlotLastSk[data], PlotLastEk[data], PlotLastRho[data]},
+{PlotLastGr[data], PlotLastSk[data], PlotLastEk[data], PlotLastRho[data], PlotLastRho2[data]},
 PlotGrData[data],
 PlotSkData[data],
 PlotRhoData[data],

@@ -45,7 +45,7 @@ ReadData[path_, headerLines_, everyNth_, functionToApplyOnLine_]:=Module[{skip, 
 	data
 ];
 
-ReadTVMCFiles[directory_]:=Module[{timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, gr, sk, rho, data},
+ReadTVMCFiles[directory_]:=Module[{timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, data},
 	timesSystem = ReadData[GetFilePath[directory, "timesSystem"]];
 	eR = ReadData[GetFilePath[directory, "LocalEnergyR"]];
 	eI = ReadData[GetFilePath[directory, "LocalEnergyI"]];
@@ -56,20 +56,22 @@ ReadTVMCFiles[directory_]:=Module[{timesSystem, eR, eI, pR, pI, other, timesAddi
 	grGrid = ReadData[GetFilePath[directory, "gr_grid"]];
 	skGrid = ReadData[GetFilePath[directory, "sk_grid"]];
 	rhoGrid = ReadData[GetFilePath[directory, "rho_grid"]];
+rho2Grid = ReadData[GetFilePath[directory, "rho2_grid"]];
 	gr = ReadData[GetFilePath[directory, "gr"]];
 	sk = ReadData[GetFilePath[directory, "sk"]];
 	rho = ReadData[GetFilePath[directory, "rho"]];
+rho2 = ReadData[GetFilePath[directory, "rho2"]];
 	data = <|"directory"-> directory, "timesSystem"->timesSystem, 
 		"eR"->eR, "eI"->eI, "pR"->pR, "pI"->pI, "other"->other,
 		"timesAdditional"->timesAdditional,
-		"grGrid"->grGrid, "skGrid"->skGrid,"rhoGrid"->rhoGrid,
-		"gr"->gr, "sk"->sk,"rho"->rho|>;
+		"grGrid"->grGrid, "skGrid"->skGrid,"rhoGrid"->rhoGrid,"rho2Grid"->rho2Grid,
+		"gr"->gr, "sk"->sk,"rho"->rho,"rho2"->rho2|>;
 	data
 ];
 
 TakeData[data_, interval_] := Module[{new, keys, keys2D},
 keys = {"timesSystem", "eR", "eI", "timesAdditional"};
-keys2D = {"pR", "pI", "other", "gr", "sk", "rho"};
+keys2D = {"pR", "pI", "other", "gr", "sk", "rho", "rho2"};
 new = data;
 (If[new[#] !={}, new[#]=Check[new[#][[interval]], new[#]]])&/@keys;
 (If[new[#] != {{}}, new[#]=Check[(new[#]//Transpose)[[interval]]//Transpose, new[#]]])&/@keys2D;
