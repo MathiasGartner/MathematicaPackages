@@ -78,11 +78,17 @@ PlotLastEk[data_]:= PlotSingleObservable[data["skGrid"], ({data["skGrid"], data[
 PlotLastRho[data_/;MatchQ[data, KeyValuePattern["rho"->{{}}]]] := Nothing;
 PlotLastRho[data_]:= PlotSingleObservable[data["rhoGrid"], data["rho"]//Transpose//Last, "\[Rho](r, t="<>ToString[data["timesAdditional"]//Last]<>")"];
 PlotLastRho2[data_/;MatchQ[data, KeyValuePattern["rho2"->{{}}]]] := Nothing;
-PlotLastRho2[data_]:= Module[{rangeR1, rangeR2, range},
+PlotLastRho2[data_]:= Module[{rangeR1, rangeR2, range, dataRho, dataRho2, plotRho2, plotRho2Normalized, plots, t},
+t=ToString[data["timesAdditional"]//Last];
 rangeR1 = {data["rho2Grid"][[1]]//First, data["rho2Grid"][[1]]//Last};
 rangeR2 = {data["rho2Grid"][[2]]//First, data["rho2Grid"][[2]]//Last};
 range = {rangeR1, rangeR2};
-MatrixPlot[data["rho2"]//Last,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"\[Rho]_2(r_ij, t)",FrameLabel->{{"r_i", ""}, {"r_j", ""}}, DataRange->range];
+dataRho2 = data["rho2"]//Transpose//Last//ArrayReshape[#, Length/@data["rho2Grid"]]&//Reverse;
+dataRho = data["rho"]//Transpose//Last//KroneckerProduct[#, #]&;
+plotRho2 = MatrixPlot[dataRho2,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"\[Rho]_2(r_i, r_j, t) @ t="<>t,FrameLabel->{{"r_i", ""}, {"r_j", ""}}, DataRange->range];
+plotRho2Normalized=MatrixPlot[dataRho2/dataRho,ColorFunction->"Rainbow", AspectRatio->1, MaxPlotPoints->Infinity, ImageSize->imageSize, PlotLabel->"\[Rho]_2(r_i, r_j, t) / (\[Rho](r_i, t)\[Rho](r_j, t)) @ t="<>t,FrameLabel->{{"r_i", ""}, {"r_j", ""}}, DataRange->range];
+plots = {plotRho2, plotRho2Normalized};
+plots
 ];
 
 PlotGrData[data_/;MatchQ[data, KeyValuePattern["gr"->{{}}]]] := Nothing;
@@ -160,7 +166,8 @@ CompareER[data_] := Show[MapIndexed[PlotSingleObservable[#1["timesSystem"], #1["
 PlotAll[data_]:={
 {PlotER[data], PlotEI[data], PlotEKin[data], PlotEPot[data]},
 {PlotPR[data], PlotPI[data], PlotPRForTimesteps[data]},
-{PlotLastGr[data], PlotLastSk[data], PlotLastEk[data], PlotLastRho[data], PlotLastRho2[data]},
+{PlotLastGr[data], PlotLastSk[data], PlotLastEk[data], PlotLastRho[data]},
+PlotLastRho2[data],
 PlotGrData[data],
 PlotSkData[data],
 PlotRhoData[data],

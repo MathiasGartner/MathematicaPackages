@@ -15,7 +15,8 @@ Begin["Private`"]
 Needs["Utils`", FileNameJoin[{NotebookDirectory[], "..", "Utils", "Utils.m"}]];
 
 standardFileExtension = ".dat";
-GetFilePath[directory_, fileName_]:=FileNameJoin[{directory, fileName<>standardFileExtension}];
+GetFilePath[directory_, fileName_]:=GetFilePath[directory, fileName, standardFileExtension];
+GetFilePath[directory_, fileName_, fileExtension_]:=FileNameJoin[{directory, fileName<>fileExtension}];
 
 ReadData[path_]:=ReadData[path, 1, 1, #&];
 ReadData[path_, headerLines_, everyNth_, functionToApplyOnLine_]:=Module[{skip, stream, line, data, lineData},
@@ -45,7 +46,8 @@ ReadData[path_, headerLines_, everyNth_, functionToApplyOnLine_]:=Module[{skip, 
 	data
 ];
 
-ReadTVMCFiles[directory_]:=Module[{timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, data},
+ReadTVMCFiles[directory_]:=Module[{config, timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, data},
+config = ResourceFunction["ToAssociations"][Import[GetFilePath[directory, "vmc", ".config"], "JSON"]];
 	timesSystem = ReadData[GetFilePath[directory, "timesSystem"]];
 	eR = ReadData[GetFilePath[directory, "LocalEnergyR"]];
 	eI = ReadData[GetFilePath[directory, "LocalEnergyI"]];
@@ -56,12 +58,12 @@ ReadTVMCFiles[directory_]:=Module[{timesSystem, eR, eI, pR, pI, other, timesAddi
 	grGrid = ReadData[GetFilePath[directory, "gr_grid"]];
 	skGrid = ReadData[GetFilePath[directory, "sk_grid"]];
 	rhoGrid = ReadData[GetFilePath[directory, "rho_grid"]];
-rho2Grid = ReadData[GetFilePath[directory, "rho2_grid"]];
+rho2Grid = ReadData[GetFilePath[directory, "rho2_grid_"]];
 	gr = ReadData[GetFilePath[directory, "gr"]];
 	sk = ReadData[GetFilePath[directory, "sk"]];
 	rho = ReadData[GetFilePath[directory, "rho"]];
-rho2 = ReadData[GetFilePath[directory, "rho2"]];
-	data = <|"directory"-> directory, "timesSystem"->timesSystem, 
+rho2 = ReadData[GetFilePath[directory, "rho2_"]];
+	data = <|"directory"-> directory, "config"->config, "timesSystem"->timesSystem, 
 		"eR"->eR, "eI"->eI, "pR"->pR, "pI"->pI, "other"->other,
 		"timesAdditional"->timesAdditional,
 		"grGrid"->grGrid, "skGrid"->skGrid,"rhoGrid"->rhoGrid,"rho2Grid"->rho2Grid,
