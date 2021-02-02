@@ -46,7 +46,7 @@ ReadData[path_, headerLines_, everyNth_, functionToApplyOnLine_]:=Module[{skip, 
 	data
 ];
 
-ReadTVMCFiles[directory_]:=Module[{config, timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, data},
+ReadTVMCFiles[directory_]:=Module[{config, timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, vext, data},
 config = ResourceFunction["ToAssociations"][Import[GetFilePath[directory, "vmc", ".config"], "JSON"]];
 	timesSystem = ReadData[GetFilePath[directory, "timesSystem"]];
 	eR = ReadData[GetFilePath[directory, "LocalEnergyR"]];
@@ -63,17 +63,18 @@ rho2Grid = ReadData[GetFilePath[directory, "rho2_grid_"]];
 	sk = ReadData[GetFilePath[directory, "sk"]];
 	rho = ReadData[GetFilePath[directory, "rho"]];
 rho2 = ReadData[GetFilePath[directory, "rho2_"]];
+Quiet[vext = ReadData[GetFilePath[directory, "V_ext"]]];
 	data = <|"directory"-> directory, "config"->config, "timesSystem"->timesSystem, 
 		"eR"->eR, "eI"->eI, "pR"->pR, "pI"->pI, "other"->other,
 		"timesAdditional"->timesAdditional,
 		"grGrid"->grGrid, "skGrid"->skGrid,"rhoGrid"->rhoGrid,"rho2Grid"->rho2Grid,
-		"gr"->gr, "sk"->sk,"rho"->rho,"rho2"->rho2|>;
+		"gr"->gr, "sk"->sk,"rho"->rho,"rho2"->rho2, "vext"->vext|>;
 	data
 ];
 
 TakeData[data_, interval_] := Module[{new, keys, keys2D},
 keys = {"timesSystem", "eR", "eI", "timesAdditional"};
-keys2D = {"pR", "pI", "other", "gr", "sk", "rho", "rho2"};
+keys2D = {"pR", "pI", "other", "gr", "sk", "rho", "rho2", "vext"};
 new = data;
 (If[new[#] !={}, new[#]=Check[new[#][[interval]], new[#]]])&/@keys;
 (If[new[#] != {{}}, new[#]=Check[(new[#]//Transpose)[[interval]]//Transpose, new[#]]])&/@keys2D;
