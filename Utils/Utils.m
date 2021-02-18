@@ -22,6 +22,10 @@ Q::usage = "gets the q-th qudrant from a matrix Q[mat_, q_Integer: 1]";
 
 Begin["Private`"]
 
+$PlotTheme = {"Detailed"};
+
+SetOptions[$FrontEnd, PrintingStyleEnvironment -> "Working"];
+
 color[n_]:=ColorData[97,"ColorList"][[Mod[n, ColorData[97,"ColorList"]//Length]]];
 
 FromScientificForm[numberString_]:=ToExpression/@StringSplit[StringReplace[StringReplace[numberString,RegularExpression["e([+-]?)(\\d+)"]:>"*^$1$2"], " "..->","], ","];

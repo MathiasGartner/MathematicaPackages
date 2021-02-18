@@ -18,6 +18,7 @@ standardFileExtension = ".dat";
 GetFilePath[directory_, fileName_]:=GetFilePath[directory, fileName, standardFileExtension];
 GetFilePath[directory_, fileName_, fileExtension_]:=FileNameJoin[{directory, fileName<>fileExtension}];
 
+ReadData::nofile="file not found --- `1`";
 ReadData[path_]:=ReadData[path, 1, 1, #&];
 ReadData[path_, headerLines_, everyNth_, functionToApplyOnLine_]:=Module[{skip, stream, line, data, lineData},
 	skip = everyNth - 1;
@@ -40,13 +41,13 @@ ReadData[path_, headerLines_, everyNth_, functionToApplyOnLine_]:=Module[{skip, 
 		data=data//Transpose;
 		data=If[(data//Length )== 1, data//Flatten, data];
 	,
-		Print["file not found --- " <> path];
+	Message[ReadData::nofile, path];
 		data={{}};
 	];
 	data
 ];
 
-ReadTVMCFiles[directory_]:=Module[{config, timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, vext, data},
+ReadTVMCFiles[directory_]:=Module[{config, timesSystem, eR, eI, pR, pI, other, timesAdditional, grGrid, skGrid, rhoGrid, rho2Grid, gr, sk, rho, rho2, vext, grFinal, skFinal, rhoFinal, rho2Final, data},
 config = ResourceFunction["ToAssociations"][Import[GetFilePath[directory, "vmc", ".config"], "JSON"]];
 	timesSystem = ReadData[GetFilePath[directory, "timesSystem"]];
 	eR = ReadData[GetFilePath[directory, "LocalEnergyR"]];
@@ -58,17 +59,21 @@ config = ResourceFunction["ToAssociations"][Import[GetFilePath[directory, "vmc",
 	grGrid = ReadData[GetFilePath[directory, "gr_grid"]];
 	skGrid = ReadData[GetFilePath[directory, "sk_grid"]];
 	rhoGrid = ReadData[GetFilePath[directory, "rho_grid"]];
-rho2Grid = ReadData[GetFilePath[directory, "rho2_grid_"]];
+rho2Grid = ReadData[GetFilePath[directory, "rho2_grid_"]]//Quiet;
 	gr = ReadData[GetFilePath[directory, "gr"]];
 	sk = ReadData[GetFilePath[directory, "sk"]];
 	rho = ReadData[GetFilePath[directory, "rho"]];
-rho2 = ReadData[GetFilePath[directory, "rho2_"]];
-Quiet[vext = ReadData[GetFilePath[directory, "V_ext"]]];
+grFinal = ReadData[GetFilePath[directory, "AdditionalObservables_pairDistribution"]]//Quiet;
+skFinal = ReadData[GetFilePath[directory, "AdditionalObservables_structureFactor"]]//Quiet;
+rhoFinal = ReadData[GetFilePath[directory, "AdditionalObservables_density"]]//Quiet;
+rho2Final = ReadData[GetFilePath[directory, "AdditionalObservables_pairDensity"]]//Quiet;
+rho2 = ReadData[GetFilePath[directory, "rho2_"]]//Quiet;
+vext = ReadData[GetFilePath[directory, "V_ext"]]//Quiet;
 	data = <|"directory"-> directory, "config"->config, "timesSystem"->timesSystem, 
 		"eR"->eR, "eI"->eI, "pR"->pR, "pI"->pI, "other"->other,
 		"timesAdditional"->timesAdditional,
 		"grGrid"->grGrid, "skGrid"->skGrid,"rhoGrid"->rhoGrid,"rho2Grid"->rho2Grid,
-		"gr"->gr, "sk"->sk,"rho"->rho,"rho2"->rho2, "vext"->vext|>;
+		"gr"->gr, "sk"->sk,"rho"->rho,"rho2"->rho2, "vext"->vext, "final"-> <|"gr"->grFinal, "sk"->skFinal, "rho"->rhoFinal, "rho2"->rho2Final|>|>;
 	data
 ];
 
