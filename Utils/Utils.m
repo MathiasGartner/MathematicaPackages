@@ -100,11 +100,15 @@ indices=OrderingBy[l, f, -n];
 ({indexList, l}//Transpose)[[indices]]
 ];
 
-Q[mat_, q_Integer: 1] := Module[{newDims, newBounds1, newBounds2, matQ},
-newDims = Ceiling[Dimensions[mat]/2];
-newBounds1 = If[q == 1 || q == 2, ;;newDims[[1]], newDims[[1]];;];
-newBounds2 = If[q == 2 || q == 3, ;;newDims[[2]], newDims[[2]]+1;;];
-matQ = mat[[newBounds1, newBounds2]];
+Q[mat_, q_Integer: 1] := Module[{d, nd1, nd2, matQ},
+d = Ceiling[(Dimensions[mat]+1)/2];
+{nd1, nd2} = Switch[q,
+1, {;;d[[1]], d[[2]];;},
+2, {;;d[[1]], ;;d[[2]]},
+3, {d[[1]];;, ;;d[[2]]},
+4, {d[[1]];;, d[[2]];;}
+];
+matQ = mat[[nd1, nd2]];
 matQ
 ];
 
@@ -113,6 +117,9 @@ End[];
 Protect @@ Names["Utils`*"];
 
 EndPackage[];
+
+
+
 
 
 
