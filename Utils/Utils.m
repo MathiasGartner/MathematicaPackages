@@ -26,7 +26,12 @@ $PlotTheme = {"Detailed"};
 
 SetOptions[$FrontEnd, PrintingStyleEnvironment -> "Working"];
 
-color[n_]:=ColorData[97,"ColorList"][[Mod[n, ColorData[97,"ColorList"]//Length]]];
+color[n_]:=Module[{cList, c, i},
+cList = ColorData[97,"ColorList"];
+i = Mod[n, Length[cList]];
+c = If[i == 0, cList[[-1]], cList[[i]]];
+c
+];
 
 FromScientificForm[numberString_]:=ToExpression/@StringSplit[StringReplace[StringReplace[numberString,RegularExpression["e([+-]?)(\\d+)"]:>"*^$1$2"], " "..->","], ","];
 
@@ -117,10 +122,6 @@ End[];
 Protect @@ Names["Utils`*"];
 
 EndPackage[];
-
-
-
-
 
 
 
