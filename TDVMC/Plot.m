@@ -52,7 +52,7 @@ imageSize = Medium;
 
 PlotSingleObservable[x_, y_, label_String, colIndex_:1, legend_:""]:=Module[{count},
 count = Min[Length[x], Length[y]];
-ListLinePlot[{x[[;;count]], y[[;;count]]}//Transpose, PlotRange->All, PlotLegends->If[legend=="", None, LineLegend[color[colIndex], {legend}]], PlotLabel->label,  ImageSize->imageSize, PlotStyle->color[colIndex]]
+ListLinePlot[{x[[;;count]], y[[;;count]]}//Transpose, PlotRange->All, PlotLegends->If[legend=="", None, LineLegend[{color[colIndex]}, {legend}]], PlotLabel->label,  ImageSize->imageSize, PlotStyle->color[colIndex]]
 ];
 PlotTemporalData[data_, times_, label_String]:=Module[{count},
 count = Min[Length[data//Transpose], Length[times]];
@@ -64,6 +64,7 @@ ListLinePlot[data, PlotRange->All, PlotLegends->None, PlotLabel->label,PlotStyle
 ];
 
 PlotER[data_] := PlotSingleObservable[data["timesSystem"], data["eR"], "Re[E(t)]"];
+PlotER[data_, colIndex_] := PlotSingleObservable[data["timesSystem"], data["eR"], "Re[E(t)]", colIndex];
 PlotEI[data_] := PlotSingleObservable[data["timesSystem"], data["eI"], "Im[E(t)]"];
 PlotEKin[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[1]], "Re[E_kin(t)]"];
 PlotEPot[data_] := PlotSingleObservable[data["timesSystem"], data["other"][[2]], "E_pot(t)"];
@@ -172,7 +173,7 @@ animation = Manipulate[Show[plots[[i]], PlotRange->{All, {min - offset, max + of
 animation
 ];
 
-CompareER[data_] := Show[MapIndexed[PlotSingleObservable[#1["timesSystem"], #1["eR"], "Re[E(t)]", #2, FileNameTake[#1["directory"]]]&,data], PlotRange->All];
+CompareER[data_] := Show[MapIndexed[PlotSingleObservable[#1["timesSystem"], #1["eR"], "Re[E(t)]", First[#2], FileNameTake[#1["directory"]]]&,data], PlotRange->All];
 
 PlotAll[data_]:={
 {PlotER[data], PlotEI[data], PlotEKin[data], PlotEPot[data]},
@@ -194,13 +195,22 @@ ExportAllPlots[data_, directory_, filename_String:"data"]:=Export[FileNameJoin[{
 
 ExportPlot[plot_, directory_, filename_String]:=
 ExportPlot[plot, directory, filename, "pdf"];
-ExportPlot[plot_, directory_, filename_String, filetype_String]:=Export[FileNameJoin[{directory, filename<>"."<>filetype}], plot, ImageSize->Large];
+ExportPlot[plot_, directory_, filename_String, filetype_String]:=
+Switch[filetype,
+"pdf", Export[FileNameJoin[{directory, filename<>"."<>filetype}], plot, ImageSize->Large],
+"png", Export[FileNameJoin[{directory, filename<>"."<>filetype}], plot, ImageSize->1200, ImageResolution->1000], 
+"jpg", Export[FileNameJoin[{directory, filename<>"."<>filetype}], plot, ImageSize->1200, "CompressionLevel"->0], 
+_, Export[FileNameJoin[{directory, filename<>"."<>filetype}], plot, ImageSize->Large]
+];
 
 End[];
 
 Protect @@ Names["Plot`*"];
 
 EndPackage[];
+
+
+
 
 
 
